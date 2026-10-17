@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>GameForge Studio — Game Engine</title>
+  <meta name="description" content="Game engine ala Scratch/Godot/Unity dengan UI gaya CapCut. Bikin game dari nol: entity, properti, script, Play. Tanpa game hardcoded."/>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Crect width='24' height='24' rx='6' fill='%235468ff'/%3E%3Cpath d='M9.5 9.5v5M7.5 12h4M15.8 12h.01M17.8 10h.01' stroke='white' stroke-width='1.8' stroke-linecap='round'/%3E%3Crect x='3' y='6' width='18' height='12' rx='5' fill='none' stroke='white' stroke-width='1.8'/%3E%3C/svg%3E"/>
+  <link rel="stylesheet" href="./css/editor.css"/>
+</head>
+<body>
+  <div id="app">
+
+    <!-- ════════════════ TOPBAR ════════════════ -->
+    <header id="topbar">
+      <div class="tb-group">
+        <div id="logo" title="GameForge Studio">
+          <span class="logo-mark" data-icon="gamepad"></span>
+          <span class="logo-text">GameForge <b>STUDIO</b></span>
+        </div>
+        <div class="tb-sep"></div>
+        <input id="project-name" class="tb-project-name" spellcheck="false" title="Nama project — klik untuk edit"/>
+        <div class="tb-sep"></div>
+        <button id="btn-file" class="tb-btn">File<span class="chev" data-icon="chevron-down"></span></button>
+        <button id="btn-undo" class="tb-icon-btn" title="Undo (Ctrl+Z)" data-icon="undo"></button>
+        <button id="btn-redo" class="tb-icon-btn" title="Redo (Ctrl+Y)" data-icon="redo"></button>
+        <button id="btn-docs" class="tb-icon-btn" title="Panduan &amp; API" data-icon="book"></button>
+      </div>
+
+      <div class="tb-center">
+        <button id="btn-run" class="run-btn primary"><span class="ric" data-icon="play"></span>Run</button>
+        <button id="btn-stop" class="run-btn danger" disabled><span class="ric" data-icon="stop"></span>Stop</button>
+        <button id="btn-fullscreen" class="tb-icon-btn" title="Jalankan fullscreen di tab baru" data-icon="external"></button>
+      </div>
+
+      <div class="tb-group right">
+        <span id="play-badge" class="play-badge" hidden>● MODE PLAY</span>
+        <a id="btn-runtime" class="tb-btn ghost" href="./play.html" target="_blank" title="Buka runtime standalone">Runtime<span class="chev" data-icon="external"></span></a>
+      </div>
+    </header>
+
+    <!-- ════════════════ WORKSPACE ════════════════ -->
+    <div id="workspace">
+
+      <!-- LEFT: hierarchy + assets -->
+      <aside id="left-panel">
+        <section id="hierarchy-panel">
+          <div class="panel-head">
+            <span class="panel-title">HIERARCHY</span>
+            <span class="panel-actions">
+              <select id="scene-select" title="Scene aktif"></select>
+              <button id="btn-add-scene" class="icon-btn sm" title="Tambah scene" data-icon="plus"></button>
+            </span>
+          </div>
+          <div id="hierarchy-list" class="scroll"></div>
+          <button id="btn-add-entity" class="btn-primary block">+ Tambah Entity</button>
+        </section>
+
+        <div class="panel-split"></div>
+
+        <section id="assets-panel">
+          <div class="panel-head"><span class="panel-title">ASSETS</span></div>
+          <div id="assets-body" class="scroll"></div>
+        </section>
+      </aside>
+
+      <!-- CENTER: viewport -->
+      <main id="center-panel">
+        <div id="viewport-toolbar">
+          <button id="btn-grid" class="vt-btn toggle"><span data-icon="grid"></span>Grid</button>
+          <button id="btn-snap" class="vt-btn toggle"><span data-icon="snap"></span>Snap</button>
+          <div class="vt-sep"></div>
+          <button id="btn-zoom-out" class="vt-icon-btn" title="Zoom out" data-icon="minus"></button>
+          <span id="zoom-label" class="vt-label mono">100%</span>
+          <button id="btn-zoom-in" class="vt-icon-btn" title="Zoom in" data-icon="plus"></button>
+          <button id="btn-fit" class="vt-icon-btn" title="Fit ke layar" data-icon="maximize"></button>
+          <div class="vt-flex"></div>
+          <span id="fps-label" class="vt-label mono accent" hidden>60 FPS</span>
+          <span id="res-label" class="vt-label">800 × 600</span>
+        </div>
+        <div id="viewport-wrap">
+          <canvas id="viewport"></canvas>
+          <div id="play-banner" hidden>▶ MODE PLAY — <kbd>Esc</kbd> berhenti · <kbd>Ctrl+Enter</kbd> stop/play</div>
+        </div>
+      </main>
+
+      <!-- RIGHT: inspector -->
+      <aside id="right-panel">
+        <div class="panel-head">
+          <span class="panel-title">INSPECTOR</span>
+          <span id="insp-target" class="panel-sub"></span>
+        </div>
+        <div id="inspector-body" class="scroll"></div>
+      </aside>
+
+      <!-- BOTTOM: script + console -->
+      <section id="bottom-panel">
+        <div class="panel-head tabs">
+          <button class="tab-btn active" data-tab="script"><span data-icon="code"></span>Script</button>
+          <button class="tab-btn" data-tab="console"><span data-icon="terminal"></span>Console<span id="console-count" class="badge" hidden>0</span></button>
+          <span class="vt-flex"></span>
+        </div>
+
+        <div id="script-pane" class="pane active">
+          <div class="script-toolbar">
+            <select id="script-select" class="script-select" title="Pilih script"></select>
+            <button id="btn-script-new" class="sm-btn" title="Script baru">+ Baru</button>
+            <button id="btn-script-rename" class="sm-btn" title="Rename script">Rename</button>
+            <button id="btn-script-delete" class="sm-btn danger-ghost" title="Hapus script">Hapus</button>
+            <div class="vt-sep"></div>
+            <button id="btn-snippet" class="sm-btn" title="Insert potongan kode dari pustaka"><span data-icon="zap"></span>Snippet ▾</button>
+            <div class="vt-flex"></div>
+            <span id="script-status" class="script-status">Tersimpan</span>
+            <button id="btn-script-save" class="btn-primary sm">Simpan <kbd>Ctrl+S</kbd></button>
+          </div>
+          <div id="code-wrap">
+            <div id="code-gutter">1</div>
+            <textarea id="code-area" spellcheck="false" autocapitalize="off" autocomplete="off"
+              placeholder="Pilih atau buat script dulu…"></textarea>
+          </div>
+        </div>
+
+        <div id="console-pane" class="pane">
+          <div class="console-toolbar">
+            <span class="console-hint">Log, pesan, dan error runtime muncul di sini (game.log / game.warn / error script)</span>
+            <span class="vt-flex"></span>
+            <label class="chk"><input type="checkbox" id="console-autoscroll" checked/>Autoscroll</label>
+            <button id="btn-console-clear" class="sm-btn">Bersihkan</button>
+          </div>
+          <div id="console-list" class="scroll"></div>
+        </div>
+      </section>
+    </div>
+
+    <!-- ════════════════ STATUSBAR ════════════════ -->
+    <footer id="statusbar">
+      <span id="st-cursor" class="mono">0, 0</span>
+      <span id="st-grid">Grid 20px • Snap ON</span>
+      <span class="vt-flex"></span>
+      <span id="st-save">Autosave aktif</span>
+      <span id="st-engine">GameForge Engine v2.0 — 0 game di dalam engine, semua game = project data</span>
+    </footer>
+  </div>
+
+  <div id="modal-root"></div>
+  <div id="toast-root"></div>
+
+  <!-- ENGINE (tanpa kode game apapun) -->
+  <script src="./js/engine/core.js"></script>
+  <script src="./js/engine/entity.js"></script>
+  <script src="./js/engine/runtime.js"></script>
+
+  <!-- EDITOR -->
+  <script src="./js/editor/state.js"></script>
+  <script src="./js/editor/ui.js"></script>
+  <script src="./js/editor/snippets.js"></script>
+  <script src="./js/editor/hierarchy.js"></script>
+  <script src="./js/editor/assets.js"></script>
+  <script src="./js/editor/inspector.js"></script>
+  <script src="./js/editor/viewport.js"></script>
+  <script src="./js/editor/bottompanel.js"></script>
+  <script src="./js/editor/main.js"></script>
+
+  <!-- GAME = PROJECT DATA (bisa dibuka & diedit di editor, bukan hardcode) -->
+  <script src="./js/games/snake.js"></script>
+  <script src="./js/games/space-invaders.js"></script>
+  <script src="./js/games/tetris.js"></script>
+  <script src="./js/games/dice.js"></script>
+</body>
+</html>

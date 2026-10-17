@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>GameForge Runtime</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Crect width='24' height='24' rx='6' fill='%235468ff'/%3E%3Cpath d='M9.5 9.5v5M7.5 12h4M15.8 12h.01M17.8 10h.01' stroke='white' stroke-width='1.8' stroke-linecap='round'/%3E%3Crect x='3' y='6' width='18' height='12' rx='5' fill='none' stroke='white' stroke-width='1.8'/%3E%3C/svg%3E"/>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body { height: 100%; }
+    body {
+      background: #101015; color: #e9e9f0;
+      font-family: 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+      display: flex; flex-direction: column;
+    }
+    .bar {
+      display: flex; align-items: center; gap: 14px;
+      padding: 10px 16px;
+      background: #1b1b22; border-bottom: 1px solid #2b2b36;
+      flex: none;
+    }
+    .bar a {
+      color: #a2a2b0; text-decoration: none; font-size: 13px;
+      display: inline-flex; align-items: center; gap: 6px;
+      padding: 8px 14px; border-radius: 8px;
+    }
+    .bar a:hover { background: #26262f; color: #e9e9f0; }
+    .bar .title { font-weight: 700; font-size: 14px; }
+    .bar .flex { flex: 1; }
+    .bar button {
+      height: 34px; padding: 0 16px;
+      background: #5468ff; color: #fff; border: none;
+      border-radius: 8px; font-size: 13px; font-weight: 600;
+      cursor: pointer; display: inline-flex; align-items: center; gap: 7px;
+    }
+    .bar button:hover { background: #6b7cff; }
+    .bar button.ghost { background: #26262f; color: #a2a2b0; }
+    .bar button[hidden] { display: none; }
+    .stage { flex: 1; display: flex; align-items: center; justify-content: center; min-height: 0; padding: 16px; position: relative; }
+    canvas { max-width: 100%; max-height: 100%; border-radius: 8px; box-shadow: 0 10px 50px rgba(0,0,0,0.5); }
+    .fps {
+      position: absolute; top: 10px; right: 14px;
+      font-size: 11px; color: #6d6d7c; font-family: Consolas, monospace;
+    }
+    /* picker */
+    .picker {
+      max-width: 620px; width: 100%;
+      background: #1b1b22; border: 1px solid #2b2b36;
+      border-radius: 14px; padding: 26px;
+    }
+    .picker h1 { font-size: 19px; margin-bottom: 6px; }
+    .picker p { color: #a2a2b0; font-size: 13px; line-height: 1.6; margin-bottom: 18px; }
+    .demo-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 18px; }
+    .demo-card {
+      display: flex; flex-direction: column; gap: 3px; align-items: flex-start;
+      padding: 16px; text-align: left;
+      background: #20202a; border: 1px solid #2b2b36; border-radius: 11px;
+      color: #e9e9f0; cursor: pointer;
+      transition: all 0.13s;
+    }
+    .demo-card:hover { border-color: #5468ff; background: rgba(84,104,255,0.14); transform: translateY(-1px); }
+    .demo-card .em { font-size: 22px; }
+    .demo-card .nm { font-weight: 700; font-size: 13.5px; }
+    .demo-card .tg { color: #a2a2b0; font-size: 12px; }
+    .picker .row { display: flex; gap: 10px; flex-wrap: wrap; }
+    .picker .row button {
+      height: 40px; padding: 0 18px; background: #26262f; color: #e9e9f0;
+      border: 1px solid #2b2b36; border-radius: 9px; font-size: 13px; cursor: pointer;
+      display: inline-flex; align-items: center; gap: 8px;
+    }
+    .picker .row button:hover { border-color: #5468ff; }
+    .from-studio {
+      margin-bottom: 18px; padding: 14px 16px;
+      background: rgba(84,104,255,0.12); border: 1px solid rgba(84,104,255,0.4);
+      border-radius: 10px;
+      display: flex; align-items: center; gap: 12px;
+    }
+    .from-studio .nm { font-weight: 700; font-size: 13.5px; flex: 1; }
+  </style>
+</head>
+<body>
+  <div class="bar">
+    <a href="./index.html">&#9666; Kembali ke Studio</a>
+    <span class="title" id="game-title">GameForge Runtime</span>
+    <span class="flex"></span>
+    <button id="btn-restart" hidden>Restart</button>
+    <button id="btn-stop" class="ghost" hidden>Stop</button>
+  </div>
+  <div class="stage" id="stage">
+    <div class="fps" id="fps"></div>
+  </div>
+
+  <script src="./js/engine/core.js"></script>
+  <script src="./js/engine/entity.js"></script>
+  <script src="./js/engine/runtime.js"></script>
+  <script src="./js/games/snake.js"></script>
+  <script src="./js/games/space-invaders.js"></script>
+  <script src="./js/games/tetris.js"></script>
+  <script src="./js/games/dice.js"></script>
+  <script>
+  'use strict';
+  (function () {
+    const stage = document.getElementById('stage');
+    const titleEl = document.getElementById('game-title');
+    const btnRestart = document.getElementById('btn-restart');
+    const btnStop = document.getElementById('btn-stop');
+    let runtime = null;
+
+    function clearStage() {
+      stage.innerHTML = '';
+      runtime = null;
+      btnRestart.hidden = true;
+      btnStop.hidden = true;
+    }
+
+    function runProject(project) {
+      clearStage();
+      const canvas = document.createElement('canvas');
+      const fps = document.createElement('div');
+      fps.className = 'fps';
+      stage.appendChild(canvas);
+      stage.appendChild(fps);
+      runtime = new GE.Runtime(canvas, project, {
+        onFPS: (f) => { fps.textContent = f ? f + ' FPS' : ''; },
+        onLog: (msg, level) => { if (level === 'error') console.error(msg); }
+      });
+      runtime.start();
+      btnRestart.hidden = false;
+      btnStop.hidden = false;
+      titleEl.textContent = project.name || 'Game';
+    }
+
+    btnRestart.addEventListener('click', () => { if (runtime) runtime.restart(); });
+    btnStop.addEventListener('click', () => {
+      if (runtime) { runtime.destroy(); runtime = null; }
+      showPicker();
+    });
+
+    function showPicker() {
+      clearStage();
+      const box = document.createElement('div');
+      box.className = 'picker';
+
+      /* project dari studio */
+      let playnow = null;
+      try { playnow = JSON.parse(localStorage.getItem('ge_studio_playnow') || 'null'); } catch (e) {}
+
+      let html = '<h1>GameForge Runtime</h1>';
+      html += '<p>Ini runtime murni — bukti engine dan editor terpisah. Pilih project untuk dimainkan, atau bikin gamemu sendiri di <a href="./index.html" style="color:#8b9cff">Studio</a>.</p>';
+
+      if (playnow && playnow.project) {
+        html += '<div class="from-studio"><span>&#12826;</span><span class="nm">Project dari Studio: ' +
+          String(playnow.name || 'Untitled').replace(/</g, '&lt;') + '</span></div>';
+      }
+
+      html += '<div class="demo-grid">';
+      GameDemos.list.forEach((d) => {
+        html += '<button class="demo-card" data-demo="' + d.id + '">' +
+          '<span class="em">' + d.emoji + '</span><span class="nm">' + d.name + '</span>' +
+          '<span class="tg">' + d.tagline + '</span></button>';
+      });
+      html += '</div>';
+      html += '<div class="row">' +
+        '<button id="btn-import">&#11014; Mainkan file project (.json)</button>' +
+        '</div>';
+      box.innerHTML = html;
+      stage.appendChild(box);
+      titleEl.textContent = 'GameForge Runtime';
+
+      box.querySelectorAll('.demo-card').forEach((c) => {
+        c.addEventListener('click', () => {
+          const d = GameDemos.list.find((x) => x.id === c.dataset.demo);
+          if (d) runProject(d.project);
+        });
+      });
+
+      const playBtn = document.createElement('button');
+      if (playnow && playnow.project) {
+        playBtn.innerHTML = '&#9654; Mainkan: ' + String(playnow.name || 'Untitled').replace(/</g, '&lt;');
+        playBtn.className = 'demo-card';
+        playBtn.style.width = '100%';
+        playBtn.style.marginBottom = '12px';
+        playBtn.addEventListener('click', () => runProject(playnow.project));
+        box.insertBefore(playBtn, box.querySelector('.demo-grid'));
+      }
+
+      box.querySelector('#btn-import').addEventListener('click', () => {
+        const input = document.createElement('input');
+        input.type = 'file';
+        input.accept = '.json,application/json';
+        input.addEventListener('change', () => {
+          const f = input.files[0];
+          if (!f) return;
+          const r = new FileReader();
+          r.onload = () => {
+            try {
+              const p = JSON.parse(r.result);
+              if (!p.scenes || !p.settings) throw new Error('Bukan project GameForge');
+              runProject(p);
+            } catch (err) { alert('Gagal memuat: ' + err.message); }
+          };
+          r.readAsText(f);
+        });
+        input.click();
+      });
+    }
+
+    /* boot */
+    const params = new URLSearchParams(location.search);
+    if (params.get('from') === 'studio') {
+      let playnow = null;
+      try { playnow = JSON.parse(localStorage.getItem('ge_studio_playnow') || 'null'); } catch (e) {}
+      if (playnow && playnow.project) { runProject(playnow.project); return; }
+    }
+    const demoId = params.get('demo');
+    if (demoId) {
+      const d = GameDemos.list.find((x) => x.id === demoId);
+      if (d) { runProject(d.project); return; }
+    }
+    showPicker();
+  })();
+  </script>
+</body>
+</html>
