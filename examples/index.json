@@ -1,0 +1,26 @@
+[
+ {
+  "id": "dice",
+  "name": "Lempar Dadu",
+  "icon": "🎲",
+  "desc": "Klik tombol, angka acak 1-6 + jumlah lemparan"
+ },
+ {
+  "id": "snake",
+  "name": "Ular Sanke",
+  "icon": "🐍",
+  "desc": "Panah untuk gerak. Makan, ekor memanjang!"
+ },
+ {
+  "id": "space-invaders",
+  "name": "Space Invaders",
+  "icon": "👾",
+  "desc": "32 alien turun formasi. Tembak semuanya!"
+ },
+ {
+  "id": "tetris",
+  "name": "Tetris Node",
+  "icon": "🧱",
+  "desc": "Dibuat pakai 7 Playlist: Geser, Valid, Kunci, Spawn..."
+ }
+]

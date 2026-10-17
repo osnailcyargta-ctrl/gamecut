@@ -1,102 +1,59 @@
-# GameForge Studio — Game Engine
+# ◆ NEXUS — Game Engine Visual
 
-Game engine berbasis browser ala **Scratch / Godot / Unity** dengan UI bergaya **CapCut**. Kamu yang bikin gamenya dari nol lewat editor — engine ini **tidak berisi game hardcoded**.
+Game engine yang jalan penuh di browser. Bikin game **dari nol** tanpa nulis kode —
+gaya CapCut, rasa Scratch/Godot/Unity.
 
-> **0 baris kode game di dalam engine.** Semua game (termasuk 4 demo) hanyalah *project data* (scene + entity + prefabs + script) yang bisa dibuka, dibedah, dan dimodifikasi langsung di editor.
+**Tidak ada game hardcoded.** Engine, editor, dan player tidak memuat satu baris
+logika game pun. Semua game = **project data** (Scene + Entitas + Node Graph).
 
-## Kenapa ini engine beneran?
+## Buka
 
-| Kemampuan | Penjelasan |
+- **Editor**: `index.html` — buat proyek, gambar sprite, susun node graph, mainkan.
+- **Player**: `play.html` — mainkan contoh game langsung (runtime murni).
+
+## Alur bikin game dari nol
+
+1. **Scene** — atur ukuran & warna latar, tambah **Entitas** (kotak / bulat / teks / sprite).
+2. **Gambar** — tab *Gambar*: gambar sprite piksel sendiri (pensil, isi, garis, kotak,
+   bulat, cermin simetris, undo). Tanpa script sama sekali.
+3. **Node Graph** — tab *Node*: klik kanan → pilih node. Sambungkan:
+   - port **putih** = alur eksekusi (Event → Aksi → Aksi → ...)
+   - port **warna** = data (angka, teks, bool, referensi entitas)
+4. **Mainkan** — tombol ▶ Main. Esc untuk keluar.
+
+## Fitur
+
+| Fitur | Penjelasan |
 |---|---|
-| **Editor visual** | Hierarchy, Assets, Inspector, Viewport dengan grid/snap/zoom/drag — alur kerja sama seperti editor game pada umumnya |
-| **Entity & Component** | Tambah entity (kotak, bola, teks, dst), atur transform/appearance/physics di Inspector |
-| **Script system** | Setiap entity bisa dipasang script dengan lifecycle hook: `onStart`, `onUpdate`, `onKeyDown`, `onCollide`, `onClick`, `onMessage`, `onDraw` |
-| **Prefabs** | Cetakan entity untuk di-`game.spawnFrom()` saat runtime — pola yang sama dengan prefabs Unity |
-| **Message bus** | `game.send('topic', data)` — komunikasi antar entity tanpa ketergantungan langsung |
-| **Physics ringan** | Velocity, gravity, bounce, dan deteksi tabrakan AABB/circle otomatis oleh engine |
-| **Audio sintetis** | 13 efek suara WebAudio tanpa file eksternal |
-| **Runtime terpisah** | `play.html` menjalankan project tanpa editor — bukti engine dan editor adalah dua lapisan berbeda |
-| **Data-driven** | Project = JSON murni. Save ke browser, export/import file `.json`, autosave, undo/redo |
+| Node Graph | 40+ tipe node: Event, Aksi, Alur (Jika/Ulangi/Tunggu/Break), Data (variabel, list, matematika, tabrakan...) |
+| 🎶 Playlist | Seleksi beberapa node → `Ctrl+G` → jadi **1 node** yang bisa dipasang ulang di mana saja. Dobel-klik untuk mengedit isinya. Parameter bisa di-expose saat pembuatan. |
+| 🖼 Sprite Editor | Gambar piksel sendiri: 8×8 s/d 32×32, palet warna, cermin simetris, flood fill, bentuk cepat |
+| Prefab | Entitas template untuk di-Spawn (peluru, musuh, ekor ular...) |
+| Variabel & List | Variabel scene + operasi list (tambah/set/hapus/ambil/panjang) |
+| Collision | Event tabrakan per-tag/entitas, edge-triggered |
+| Suara | Efek suara sintetis (WebAudio) — tanpa file audio |
+| Autosave | Proyek tersimpan otomatis di browser + export/import file `.json` |
 
-## Menjalankan
+## Contoh game (100% buatan node)
 
-Cukup buka `index.html` di browser, atau (disarankan):
+| Game | Bukti apa |
+|---|---|
+| 🎲 Lempar Dadu | event klik, angka acak, teks dinamis |
+| 🐍 Ular Sanke | timer, list ekor, spawn prefab, collision, game over |
+| 👾 Space Invaders | 32 entitas, formasi berulang, peluru prefab, menang/kalah |
+| 🧱 Tetris Node | memakai **7 Playlist**: Geser Piece, Posisi Valid?, Gambar Piece, Hapus Piece, Kunci & Bersih Baris, Spawn Piece, Turun 1 Langkah |
 
-```bash
-python3 -m http.server 8080
-# buka http://localhost:8080
-```
+Buka lewat **📚 Contoh** lalu bedah graph-nya di tab Node.
 
-Sudah ter-deploy di GitHub Pages (dari branch `main`, root).
+## Shortcut
 
-## Bikin game dari nol — 2 menit
+`Klik kanan` tambah node · `Ctrl+G` jadikan Playlist · `Ctrl+D` duplikat ·
+`Del` hapus · `Roda mouse` zoom · `Klik tengah/space+drag` geser ·
+`Dobel-klik` masuk isi Playlist · `Esc` keluar
 
-1. **File → Project Baru** → tentukan nama & ukuran kanvas
-2. Panel **Assets** → klik template (mis. *Player*) → entity muncul di scene
-3. Atur posisi/warna/ukuran di **Inspector** (atau drag langsung di viewport)
-4. Pasang perilaku: Inspector → **Script** → pilih dari pustaka snippet generik (gravitasi+lompat, tembak, kejar target, koin+skor, dst) atau tulis script sendiri
-5. Tekan **▶ Run** (`Ctrl+Enter`) → mainkan. Error tampil di panel **Console**
-6. **File → Simpan** untuk menyimpan ke browser / export `.json`
+## Teknis
 
-## Script API (ringkas)
-
-Script = object literal dengan hook lifecycle. Variabel `game` selalu tersedia:
-
-```js
-({
-  onStart(self) {
-    game.state.score = 0;
-  },
-  onUpdate(self, dt) {
-    if (game.input.down('ArrowLeft'))  self.x -= 300 * dt;
-    if (game.input.pressed('Space'))   game.spawnFrom('Bullet', { x: self.cx, y: self.y });
-  },
-  onCollide(self, other) {
-    if (other.tag === 'enemy') { other.destroy(); self.destroy(); }
-  },
-  onDraw(self, ctx) {
-    ctx.fillStyle = '#fff';
-    ctx.fillRect(self.x, self.y, self.width, self.height);
-  }
-})
-```
-
-Dokumentasi lengkap ada di dalam aplikasi: tombol **📖** di topbar.
-
-## Struktur project
-
-```
-├── index.html            # Editor (CapCut-style)
-├── play.html             # Runtime standalone
-├── css/
-│   └── editor.css        # Tema gelap CapCut-style
-├── js/
-│   ├── engine/           # ═══ ENGINE — nol kode game ═══
-│   │   ├── core.js       #   math, input, audio, loop, compiler, renderer
-│   │   ├── entity.js     #   Entity runtime
-│   │   └── runtime.js    #   Project → game: scene, collision, script API
-│   ├── editor/           # ═══ EDITOR ═══
-│   │   ├── state.js      #   model project + undo/redo + autosave
-│   │   ├── ui.js         #   DOM helper, modal, menu, ikon
-│   │   ├── snippets.js   #   pustaka perilaku generik + docs
-│   │   ├── hierarchy.js  #   panel kiri-atas
-│   │   ├── assets.js     #   panel kiri-bawah (template, prefabs, suara)
-│   │   ├── inspector.js  #   panel kanan
-│   │   ├── viewport.js   #   canvas editor (grid, snap, drag, zoom)
-│   │   ├── bottompanel.js#   code editor + console
-│   │   └── main.js       #   topbar, file ops, run/stop, shortcuts
-│   └── games/            # ═══ GAME = PROJECT DATA (bukan hardcode) ═══
-│       ├── snake.js
-│       ├── space-invaders.js
-│       ├── tetris.js
-│       └── dice.js
-```
-
-## Demo projects
-
-Empat game ini adalah *project data* — buka lewat **File → Buka** lalu bedah isinya di editor:
-
-- 🐍 **Snake** — papan digambar via `onDraw`, input via `onKeyDown`
-- 🚀 **Space Invaders** — prefabs + `spawnFrom`, collision, message bus, director pattern
-- 🧱 **Tetris** — puzzle lengkap dalam satu script: rotasi matriks, lock, hapus baris
-- 🎲 **Lempar Dadu** — dua entity berbagi satu script dengan properti berbeda (`slot: 0/1`)
+- Vanilla JS multi-file, tanpa build step, tanpa dependency — cocok untuk GitHub Pages.
+- `js/core/` = runtime engine (interpreter node graph, collision, render, audio).
+  **Nol kode game.** `js/editor/` = editor. `examples/*.json` = game sebagai data.
+- Regenerasi contoh: `node scripts/gen_examples.mjs` · uji logika: `node scripts/test_sim.mjs`

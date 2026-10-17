@@ -1,170 +1,156 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
-  <meta charset="UTF-8"/>
-  <meta name="viewport" content="width=device-width, initial-scale=1"/>
-  <title>GameForge Studio — Game Engine</title>
-  <meta name="description" content="Game engine ala Scratch/Godot/Unity dengan UI gaya CapCut. Bikin game dari nol: entity, properti, script, Play. Tanpa game hardcoded."/>
-  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Crect width='24' height='24' rx='6' fill='%235468ff'/%3E%3Cpath d='M9.5 9.5v5M7.5 12h4M15.8 12h.01M17.8 10h.01' stroke='white' stroke-width='1.8' stroke-linecap='round'/%3E%3Crect x='3' y='6' width='18' height='12' rx='5' fill='none' stroke='white' stroke-width='1.8'/%3E%3C/svg%3E"/>
-  <link rel="stylesheet" href="./css/editor.css"/>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NEXUS — Game Engine Visual</title>
+<link rel="stylesheet" href="css/main.css">
+<link rel="stylesheet" href="css/nodes.css">
 </head>
 <body>
-  <div id="app">
 
-    <!-- ════════════════ TOPBAR ════════════════ -->
-    <header id="topbar">
-      <div class="tb-group">
-        <div id="logo" title="GameForge Studio">
-          <span class="logo-mark" data-icon="gamepad"></span>
-          <span class="logo-text">GameForge <b>STUDIO</b></span>
-        </div>
-        <div class="tb-sep"></div>
-        <input id="project-name" class="tb-project-name" spellcheck="false" title="Nama project — klik untuk edit"/>
-        <div class="tb-sep"></div>
-        <button id="btn-file" class="tb-btn">File<span class="chev" data-icon="chevron-down"></span></button>
-        <button id="btn-undo" class="tb-icon-btn" title="Undo (Ctrl+Z)" data-icon="undo"></button>
-        <button id="btn-redo" class="tb-icon-btn" title="Redo (Ctrl+Y)" data-icon="redo"></button>
-        <button id="btn-docs" class="tb-icon-btn" title="Panduan &amp; API" data-icon="book"></button>
-      </div>
+<!-- ======= TOP BAR ======= -->
+<header id="topbar">
+  <div class="logo">◆ NEXUS <small>game engine</small></div>
+  <input id="projName" class="projname" value="Proyek Baru" spellcheck="false">
+  <div class="topbtns">
+    <button id="btnPlay" class="btn primary">▶ Main</button>
+    <button id="btnSave" class="btn">💾 Simpan</button>
+    <button id="btnExport" class="btn" title="Unduh file proyek">⬇︎</button>
+    <button id="btnImport" class="btn" title="Buka file proyek">⬆︎</button>
+    <button id="btnExamples" class="btn">📚 Contoh</button>
+    <button id="btnNew" class="btn" title="Proyek baru">＋</button>
+    <a id="btnPlayer" class="btn" href="play.html" title="Buka Player terpisah">🎮</a>
+    <button id="btnHelp" class="btn" title="Panduan">?</button>
+  </div>
+</header>
 
-      <div class="tb-center">
-        <button id="btn-run" class="run-btn primary"><span class="ric" data-icon="play"></span>Run</button>
-        <button id="btn-stop" class="run-btn danger" disabled><span class="ric" data-icon="stop"></span>Stop</button>
-        <button id="btn-fullscreen" class="tb-icon-btn" title="Jalankan fullscreen di tab baru" data-icon="external"></button>
-      </div>
+<!-- ======= APP ======= -->
+<div id="app">
+  <nav id="rail">
+    <button class="railbtn on" data-tab="scene" title="Scene & Entitas">🎬<small>Scene</small></button>
+    <button class="railbtn" data-tab="sprite" title="Sprite">🖼<small>Sprite</small></button>
+    <button class="railbtn" data-tab="playlist" title="Playlist (node gabungan)">🎶<small>Playlist</small></button>
+    <button class="railbtn" data-tab="library" title="Library node">🧩<small>Node</small></button>
+  </nav>
 
-      <div class="tb-group right">
-        <span id="play-badge" class="play-badge" hidden>● MODE PLAY</span>
-        <a id="btn-runtime" class="tb-btn ghost" href="./play.html" target="_blank" title="Buka runtime standalone">Runtime<span class="chev" data-icon="external"></span></a>
-      </div>
-    </header>
+  <aside id="leftPanel">
+    <div class="lpanel" id="lp-scene"></div>
+    <div class="lpanel" id="lp-sprite" style="display:none"></div>
+    <div class="lpanel" id="lp-playlist" style="display:none"></div>
+    <div class="lpanel" id="lp-library" style="display:none"></div>
+  </aside>
 
-    <!-- ════════════════ WORKSPACE ════════════════ -->
-    <div id="workspace">
-
-      <!-- LEFT: hierarchy + assets -->
-      <aside id="left-panel">
-        <section id="hierarchy-panel">
-          <div class="panel-head">
-            <span class="panel-title">HIERARCHY</span>
-            <span class="panel-actions">
-              <select id="scene-select" title="Scene aktif"></select>
-              <button id="btn-add-scene" class="icon-btn sm" title="Tambah scene" data-icon="plus"></button>
-            </span>
-          </div>
-          <div id="hierarchy-list" class="scroll"></div>
-          <button id="btn-add-entity" class="btn-primary block">+ Tambah Entity</button>
-        </section>
-
-        <div class="panel-split"></div>
-
-        <section id="assets-panel">
-          <div class="panel-head"><span class="panel-title">ASSETS</span></div>
-          <div id="assets-body" class="scroll"></div>
-        </section>
-      </aside>
-
-      <!-- CENTER: viewport -->
-      <main id="center-panel">
-        <div id="viewport-toolbar">
-          <button id="btn-grid" class="vt-btn toggle"><span data-icon="grid"></span>Grid</button>
-          <button id="btn-snap" class="vt-btn toggle"><span data-icon="snap"></span>Snap</button>
-          <div class="vt-sep"></div>
-          <button id="btn-zoom-out" class="vt-icon-btn" title="Zoom out" data-icon="minus"></button>
-          <span id="zoom-label" class="vt-label mono">100%</span>
-          <button id="btn-zoom-in" class="vt-icon-btn" title="Zoom in" data-icon="plus"></button>
-          <button id="btn-fit" class="vt-icon-btn" title="Fit ke layar" data-icon="maximize"></button>
-          <div class="vt-flex"></div>
-          <span id="fps-label" class="vt-label mono accent" hidden>60 FPS</span>
-          <span id="res-label" class="vt-label">800 × 600</span>
-        </div>
-        <div id="viewport-wrap">
-          <canvas id="viewport"></canvas>
-          <div id="play-banner" hidden>▶ MODE PLAY — <kbd>Esc</kbd> berhenti · <kbd>Ctrl+Enter</kbd> stop/play</div>
-        </div>
-      </main>
-
-      <!-- RIGHT: inspector -->
-      <aside id="right-panel">
-        <div class="panel-head">
-          <span class="panel-title">INSPECTOR</span>
-          <span id="insp-target" class="panel-sub"></span>
-        </div>
-        <div id="inspector-body" class="scroll"></div>
-      </aside>
-
-      <!-- BOTTOM: script + console -->
-      <section id="bottom-panel">
-        <div class="panel-head tabs">
-          <button class="tab-btn active" data-tab="script"><span data-icon="code"></span>Script</button>
-          <button class="tab-btn" data-tab="console"><span data-icon="terminal"></span>Console<span id="console-count" class="badge" hidden>0</span></button>
-          <span class="vt-flex"></span>
-        </div>
-
-        <div id="script-pane" class="pane active">
-          <div class="script-toolbar">
-            <select id="script-select" class="script-select" title="Pilih script"></select>
-            <button id="btn-script-new" class="sm-btn" title="Script baru">+ Baru</button>
-            <button id="btn-script-rename" class="sm-btn" title="Rename script">Rename</button>
-            <button id="btn-script-delete" class="sm-btn danger-ghost" title="Hapus script">Hapus</button>
-            <div class="vt-sep"></div>
-            <button id="btn-snippet" class="sm-btn" title="Insert potongan kode dari pustaka"><span data-icon="zap"></span>Snippet ▾</button>
-            <div class="vt-flex"></div>
-            <span id="script-status" class="script-status">Tersimpan</span>
-            <button id="btn-script-save" class="btn-primary sm">Simpan <kbd>Ctrl+S</kbd></button>
-          </div>
-          <div id="code-wrap">
-            <div id="code-gutter">1</div>
-            <textarea id="code-area" spellcheck="false" autocapitalize="off" autocomplete="off"
-              placeholder="Pilih atau buat script dulu…"></textarea>
-          </div>
-        </div>
-
-        <div id="console-pane" class="pane">
-          <div class="console-toolbar">
-            <span class="console-hint">Log, pesan, dan error runtime muncul di sini (game.log / game.warn / error script)</span>
-            <span class="vt-flex"></span>
-            <label class="chk"><input type="checkbox" id="console-autoscroll" checked/>Autoscroll</label>
-            <button id="btn-console-clear" class="sm-btn">Bersihkan</button>
-          </div>
-          <div id="console-list" class="scroll"></div>
-        </div>
-      </section>
+  <main id="center">
+    <div id="tabbar">
+      <button class="tabbtn on" data-tab="stage">🎞 Stage</button>
+      <button class="tabbtn" data-tab="node">🧩 Node Graph</button>
+      <button class="tabbtn" data-tab="sprite">🖼 Gambar</button>
     </div>
 
-    <!-- ════════════════ STATUSBAR ════════════════ -->
-    <footer id="statusbar">
-      <span id="st-cursor" class="mono">0, 0</span>
-      <span id="st-grid">Grid 20px • Snap ON</span>
-      <span class="vt-flex"></span>
-      <span id="st-save">Autosave aktif</span>
-      <span id="st-engine">GameForge Engine v2.0 — 0 game di dalam engine, semua game = project data</span>
-    </footer>
+    <div id="stageTab" class="tabpage">
+      <div class="stagebar">
+        <button id="btnAddEnt" class="btn sm">＋ Entitas</button>
+        <span class="hint">Tarik entitas untuk memindah · klik untuk edit di kanan · grid 20px</span>
+      </div>
+      <div class="stagewrap"><canvas id="stageCanvas"></canvas></div>
+    </div>
+
+    <div id="nodeTab" class="tabpage" style="display:none">
+      <div id="ngHead">
+        <span id="ngCrumb"></span>
+        <div class="ngtools">
+          <button id="ngAdd" class="btn sm">＋ Node</button>
+          <button id="ngGroup" class="btn sm violet">🎶 Jadikan Playlist <small>Ctrl+G</small></button>
+          <button id="ngDel" class="btn sm">🗑</button>
+          <button id="ngZoomOut" class="btn sm">−</button>
+          <span id="ngZoomLbl" class="zl">100%</span>
+          <button id="ngZoomIn" class="btn sm">＋</button>
+          <button id="ngFit" class="btn sm">⤢ Fit</button>
+        </div>
+      </div>
+      <div id="ngCanvas">
+        <div id="ngWorld">
+          <svg id="ngWires" width="8000" height="5000" style="overflow:visible"></svg>
+        </div>
+        <div id="ngSelBox"></div>
+        <div id="ngEmpty">Klik kanan area ini → pilih node.<br>Mulai dari node hijau (Event), mis. <b>Saat Mulai</b> atau <b>Saat Tombol Ditekan</b>.</div>
+      </div>
+    </div>
+
+    <div id="spriteTab" class="tabpage" style="display:none">
+      <div class="spritehead"><b id="spName">—</b></div>
+      <div id="spEditor">
+        <div id="spSide">
+          <div class="lp-head">TOOLS</div>
+          <div id="spTools"></div>
+          <div class="lp-head">WARNA</div>
+          <div id="spPal"></div>
+          <input id="spColor" class="fld col" type="color" value="#22d3ee">
+          <label class="chk" style="margin-top:8px"><input type="checkbox" id="spMirror"> Cermin simetris ⟷</label>
+          <div class="lp-head">BENTUK CEPAT</div>
+          <select id="spQuick" class="fld">
+            <option value="">— pilih —</option>
+            <option value="box">Kotak penuh</option>
+            <option value="ball">Bulat penuh</option>
+            <option value="tri">Segitiga</option>
+          </select>
+          <div class="row gap" style="margin-top:12px; flex-wrap:wrap">
+            <button id="spUndo" class="btn sm">↩ Undo</button>
+            <button id="spClear" class="btn sm">Bersihkan</button>
+          </div>
+          <button id="spSave" class="btn primary grow" style="margin-top:10px">💾 Simpan Sprite</button>
+        </div>
+        <div id="spWrap"><canvas id="spCanvas"></canvas></div>
+      </div>
+    </div>
+  </main>
+
+  <aside id="rightPanel"></aside>
+</div>
+
+<!-- ======= PLAY OVERLAY ======= -->
+<div id="playModal" style="display:none">
+  <div class="playbar">
+    <b id="playState"></b>
+    <div class="row gap">
+      <button id="btnRePlay" class="btn sm">🔄 Ulang</button>
+      <button id="btnStopPlay" class="btn sm danger">⏹ Stop <small>Esc</small></button>
+    </div>
   </div>
+  <div class="playwrap"><canvas id="playCanvas"></canvas></div>
+  <div class="playhint">Mainkan! Tombol keyboard &amp; klik aktif selama mode ini.</div>
+</div>
 
-  <div id="modal-root"></div>
-  <div id="toast-root"></div>
+<!-- ======= WELCOME ======= -->
+<div id="welcomeModal" style="display:none">
+  <div class="welcome">
+    <div class="wlogo">◆ NEXUS</div>
+    <div class="wsub">Game engine visual — bikin game dari nol tanpa nulis kode.<br>Gaya CapCut, rasa Godot/Scratch.</div>
+    <button id="wlContinue" class="btn big">▶ Lanjutkan proyek terakhir</button>
+    <button id="wlExamples" class="btn big violet">📚 Buka contoh game (4 game buatan node)</button>
+    <button id="wlNew" class="btn big">＋ Proyek baru dari nol</button>
+    <button id="wlOpen" class="btn big">📂 Buka file proyek (.json)</button>
+    <div class="wfoot">Semua game = Scene + Entitas + Node Graph. Tidak ada game hardcoded.</div>
+  </div>
+</div>
 
-  <!-- ENGINE (tanpa kode game apapun) -->
-  <script src="./js/engine/core.js"></script>
-  <script src="./js/engine/entity.js"></script>
-  <script src="./js/engine/runtime.js"></script>
+<div id="modalRoot"></div>
+<div id="toasts"></div>
 
-  <!-- EDITOR -->
-  <script src="./js/editor/state.js"></script>
-  <script src="./js/editor/ui.js"></script>
-  <script src="./js/editor/snippets.js"></script>
-  <script src="./js/editor/hierarchy.js"></script>
-  <script src="./js/editor/assets.js"></script>
-  <script src="./js/editor/inspector.js"></script>
-  <script src="./js/editor/viewport.js"></script>
-  <script src="./js/editor/bottompanel.js"></script>
-  <script src="./js/editor/main.js"></script>
-
-  <!-- GAME = PROJECT DATA (bisa dibuka & diedit di editor, bukan hardcode) -->
-  <script src="./js/games/snake.js"></script>
-  <script src="./js/games/space-invaders.js"></script>
-  <script src="./js/games/tetris.js"></script>
-  <script src="./js/games/dice.js"></script>
+<script src="js/core/util.js"></script>
+<script src="js/core/audio.js"></script>
+<script src="js/core/input.js"></script>
+<script src="js/core/nodedefs.js"></script>
+<script src="js/core/interpreter.js"></script>
+<script src="js/core/runtime.js"></script>
+<script src="js/core/storage.js"></script>
+<script src="js/editor/editor.js"></script>
+<script src="js/editor/stage.js"></script>
+<script src="js/editor/nodeEditor.js"></script>
+<script src="js/editor/groups.js"></script>
+<script src="js/editor/shapeEditor.js"></script>
+<script src="js/editor/panels.js"></script>
+<script src="js/main.js"></script>
 </body>
 </html>
